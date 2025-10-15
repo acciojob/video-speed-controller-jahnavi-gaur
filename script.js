@@ -13,7 +13,7 @@
 const video = document.querySelector('.player__video');
 const toggle = document.querySelector('.toggle');
 const skipButtons = document.querySelectorAll('[data-skip]');
-const skipButtons = player.querySelectorAll('[data-skip]');
+
 const ranges = player.querySelectorAll('input[type="range"]');
 const progress = player.querySelector('.progress');
 const progressBar = player.querySelector('.progress__filled');
