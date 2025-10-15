@@ -10,9 +10,9 @@
 
 
 // Elements
-const player = document.querySelector('.player');
-const video = player.querySelector('.viewer');
-const toggle = player.querySelector('.toggle');
+const video = document.querySelector('.player__video');
+const toggle = document.querySelector('.toggle');
+const skipButtons = document.querySelectorAll('[data-skip]');
 const skipButtons = player.querySelectorAll('[data-skip]');
 const ranges = player.querySelectorAll('input[type="range"]');
 const progress = player.querySelector('.progress');
