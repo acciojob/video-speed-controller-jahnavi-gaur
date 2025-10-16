@@ -9,52 +9,65 @@
 //     inputs.forEach(input => input.addEventListener('mousemove', handleUpdate));
 
 
-const video = document.querySelector('.player__video');
-const toggle = document.querySelector('.toggle');
-const rewind = document.querySelector('.rewind');
-const skipButtons = document.querySelectorAll('.skip');
-const inputs = document.querySelectorAll('.controls input');
-const progress = document.querySelector('.progress');
-const progressBar = document.querySelector('.progress__filled');
+// Select elements
+const video = document.querySelector('.flex');
+const speed = document.querySelector('.speed');
+const speedBar = document.querySelector('.speed-bar');
 
-// Play/Pause toggle
+// Create custom controls dynamically (since we can't modify HTML)
+const controls = document.createElement('div');
+controls.classList.add('controls');
+controls.innerHTML = `
+  <div class="progress"><div class="progress__filled"></div></div>
+  <button class="player__button toggle">►</button>
+  <button data-skip="-10" class="player__button">« 10s</button>
+  <button data-skip="25" class="player__button">25s »</button>
+  <label>Volume</label>
+  <input type="range" name="volume" min="0" max="1" step="0.05" value="1">
+  <label>Speed</label>
+  <input type="range" name="playbackRate" min="0.5" max="2" step="0.1" value="1">
+`;
+document.body.appendChild(controls);
+
+// Select dynamic elements
+const toggle = controls.querySelector('.toggle');
+const progress = controls.querySelector('.progress');
+const progressBar = controls.querySelector('.progress__filled');
+const skipButtons = controls.querySelectorAll('[data-skip]');
+const ranges = controls.querySelectorAll('input[type="range"]');
+
+// Toggle play/pause
 function togglePlay() {
   if (video.paused) video.play();
   else video.pause();
 }
 
+// Update play/pause button
 function updateButton() {
   toggle.textContent = video.paused ? '►' : '❚ ❚';
 }
 
-// Rewind button
-function skipRewind() {
-  video.currentTime += parseFloat(this.dataset.skip);
-}
-
-// Skip buttons (forward 25s)
-function skip() {
-  video.currentTime += parseFloat(this.dataset.skip);
-}
-
-// Volume and playback speed
-function handleUpdate() {
-  video[this.name] = this.value;
-  if(this.name === 'playbackRate'){
-    document.querySelector('.speed-bar').textContent = this.value + '×';
-  }
-}
-
-// Progress bar
+// Update progress bar
 function handleProgress() {
   const percent = (video.currentTime / video.duration) * 100;
   progressBar.style.width = `${percent}%`;
 }
 
-// Scrub
+// Scrub (seek)
 function scrub(e) {
   const scrubTime = (e.offsetX / progress.offsetWidth) * video.duration;
   video.currentTime = scrubTime;
+}
+
+// Skip buttons
+function skip() {
+  video.currentTime += parseFloat(this.dataset.skip);
+}
+
+// Volume and speed
+function handleRangeUpdate() {
+  video[this.name] = this.value;
+  if (this.name === 'playbackRate') speedBar.textContent = `${this.value}×`;
 }
 
 // Event listeners
@@ -64,14 +77,11 @@ video.addEventListener('pause', updateButton);
 video.addEventListener('timeupdate', handleProgress);
 
 toggle.addEventListener('click', togglePlay);
-rewind.addEventListener('click', skipRewind);
-
 skipButtons.forEach(button => button.addEventListener('click', skip));
-inputs.forEach(input => input.addEventListener('change', handleUpdate));
-inputs.forEach(input => input.addEventListener('mousemove', handleUpdate));
+ranges.forEach(range => range.addEventListener('input', handleRangeUpdate));
 
 let mousedown = false;
 progress.addEventListener('click', scrub);
-progress.addEventListener('mousemove', (e) => mousedown && scrub(e));
-progress.addEventListener('mousedown', () => mousedown = true);
-progress.addEventListener('mouseup', () => mousedown = false);
+progress.addEventListener('mousemove', e => mousedown && scrub(e));
+progress.addEventListener('mousedown', () => (mousedown = true));
+progress.addEventListener('mouseup', () => (mousedown = false));
