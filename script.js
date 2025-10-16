@@ -8,20 +8,20 @@
 //     inputs.forEach(input => input.addEventListener('change', handleUpdate));
 //     inputs.forEach(input => input.addEventListener('mousemove', handleUpdate));
 
-
-// Select elements
+// Select existing elements
 const video = document.querySelector('.flex');
-const speed = document.querySelector('.speed');
-const speedBar = document.querySelector('.speed-bar');
 
-// Create custom controls dynamically (since we can't modify HTML)
+// ✅ Add expected class for Cypress tests
+video.classList.add('player__video');
+
+// Create custom controls dynamically (Cypress expects .toggle, .rewind, etc.)
 const controls = document.createElement('div');
 controls.classList.add('controls');
 controls.innerHTML = `
   <div class="progress"><div class="progress__filled"></div></div>
   <button class="player__button toggle">►</button>
-  <button data-skip="-10" class="player__button">« 10s</button>
-  <button data-skip="25" class="player__button">25s »</button>
+  <button class="player__button rewind" data-skip="-10">« 10s</button>
+  <button class="player__button forward" data-skip="25">25s »</button>
   <label>Volume</label>
   <input type="range" name="volume" min="0" max="1" step="0.05" value="1">
   <label>Speed</label>
@@ -36,13 +36,13 @@ const progressBar = controls.querySelector('.progress__filled');
 const skipButtons = controls.querySelectorAll('[data-skip]');
 const ranges = controls.querySelectorAll('input[type="range"]');
 
-// Toggle play/pause
+// Play/pause toggle
 function togglePlay() {
-  if (video.paused) video.play();
-  else video.pause();
+  const method = video.paused ? 'play' : 'pause';
+  video[method]();
 }
 
-// Update play/pause button
+// Update toggle icon
 function updateButton() {
   toggle.textContent = video.paused ? '►' : '❚ ❚';
 }
@@ -53,21 +53,20 @@ function handleProgress() {
   progressBar.style.width = `${percent}%`;
 }
 
-// Scrub (seek)
+// Scrub video
 function scrub(e) {
   const scrubTime = (e.offsetX / progress.offsetWidth) * video.duration;
   video.currentTime = scrubTime;
 }
 
-// Skip buttons
+// Skip backward or forward
 function skip() {
   video.currentTime += parseFloat(this.dataset.skip);
 }
 
-// Volume and speed
+// Volume and speed controls
 function handleRangeUpdate() {
   video[this.name] = this.value;
-  if (this.name === 'playbackRate') speedBar.textContent = `${this.value}×`;
 }
 
 // Event listeners
@@ -77,11 +76,12 @@ video.addEventListener('pause', updateButton);
 video.addEventListener('timeupdate', handleProgress);
 
 toggle.addEventListener('click', togglePlay);
-skipButtons.forEach(button => button.addEventListener('click', skip));
+skipButtons.forEach(btn => btn.addEventListener('click', skip));
 ranges.forEach(range => range.addEventListener('input', handleRangeUpdate));
 
+// Progress bar scrub behavior
 let mousedown = false;
 progress.addEventListener('click', scrub);
-progress.addEventListener('mousemove', e => mousedown && scrub(e));
-progress.addEventListener('mousedown', () => (mousedown = true));
-progress.addEventListener('mouseup', () => (mousedown = false));
+progress.addEventListener('mousemove', (e) => mousedown && scrub(e));
+progress.addEventListener('mousedown', () => mousedown = true);
+progress.addEventListener('mouseup', () => mousedown = false);
